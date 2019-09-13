@@ -498,6 +498,15 @@ public class FingerprintAuthAux {
                 mFragment.setArguments(bundle);
                 mFragment.setmFingerPrintAuth(auth);
 
+                // If we can't access the resources needed to show the fragment, don't open it
+                Boolean canAccessResources = verifyResourcesAccess(cordova);
+
+                if(!canAccessResources) {
+                    mPluginResult = new PluginResult(PluginResult.Status.ERROR, "Failed to open fingerprint dialog");
+                    mCallbackContext.sendPluginResult(mPluginResult);
+                    return;
+                }
+
                 if (initCipher(mode, cordova)) {
                     mFragment.setCancelable(false);
                     // Show the fingerprint dialog. The user has the option to use the fingerprint with
@@ -515,6 +524,16 @@ public class FingerprintAuthAux {
                 }
             }
         });
+    }
+
+    // verify if we can access resources needed to show the dialogfragment
+    private Boolean verifyResourcesAccess(CordovaInterface cordova) {
+        int fingerprint_auth_dialog_title_id = cordova.getActivity().getResources().getIdentifier("fingerprint_auth_dialog_title", "string", packageName);
+        // 0 means that the resource identifier was not found
+        if(fingerprint_auth_dialog_title_id == 0) {
+           return false;
+        }
+        return true;
     }
 
     public void onAuthenticated(boolean withFingerprint) {
